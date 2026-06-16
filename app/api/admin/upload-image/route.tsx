@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeClient } from '@/sanity/lib/client';
 import sharp from 'sharp';
+import { ImageResponse } from 'next/og';
+import React from 'react';
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,24 +33,64 @@ export async function POST(request: NextRequest) {
     const titleSize = Math.floor(48 * scale);
     const subtitleSize = Math.floor(24 * scale);
 
-    console.time('[UPLOAD API] SVG Watermark Generate');
+    console.time('[UPLOAD API] Satori Tile Generate');
+    const tileWidth = Math.floor(400 * scale);
+    const tileHeight = Math.floor(250 * scale);
+
+    const tileRes = new ImageResponse(
+      (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'transparent',
+          }}
+        >
+          <span
+            style={{
+              fontSize: titleSize,
+              fontWeight: 900,
+              color: 'rgba(255, 255, 255, 0.15)',
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.15)',
+            }}
+          >
+            JEET FURNITURE
+          </span>
+          <span
+            style={{
+              fontSize: subtitleSize,
+              color: 'rgba(255, 255, 255, 0.15)',
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.15)',
+              marginTop: 5,
+            }}
+          >
+            www.jeetfurniture.com
+          </span>
+        </div>
+      ),
+      { width: tileWidth, height: tileHeight }
+    );
+
+    const tileBuffer = Buffer.from(await tileRes.arrayBuffer());
+    const tileBase64 = tileBuffer.toString('base64');
+    console.timeEnd('[UPLOAD API] Satori Tile Generate');
+
+    console.time('[UPLOAD API] SVG Composite Generate');
     const svgString = `
 <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <pattern id="wm" x="0" y="0" width="${300 * scale}" height="${200 * scale}" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)">
-      <!-- Drop shadows -->
-      <text x="50%" y="40%" dx="1" dy="1" font-family="sans-serif" font-size="${titleSize}" font-weight="900" fill="rgba(0, 0, 0, 0.15)" text-anchor="middle" dominant-baseline="middle">JEET FURNITURE</text>
-      <text x="50%" y="60%" dx="1" dy="1" font-family="sans-serif" font-size="${subtitleSize}" font-weight="500" fill="rgba(0, 0, 0, 0.15)" text-anchor="middle" dominant-baseline="middle">www.jeetfurniture.com</text>
-      
-      <!-- Foreground Text -->
-      <text x="50%" y="40%" font-family="sans-serif" font-size="${titleSize}" font-weight="900" fill="rgba(255, 255, 255, 0.15)" text-anchor="middle" dominant-baseline="middle">JEET FURNITURE</text>
-      <text x="50%" y="60%" font-family="sans-serif" font-size="${subtitleSize}" font-weight="500" fill="rgba(255, 255, 255, 0.15)" text-anchor="middle" dominant-baseline="middle">www.jeetfurniture.com</text>
+    <pattern id="wm" x="0" y="0" width="${tileWidth}" height="${tileHeight}" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)">
+      <image href="data:image/png;base64,${tileBase64}" width="${tileWidth}" height="${tileHeight}" />
     </pattern>
   </defs>
   <rect x="0" y="0" width="100%" height="100%" fill="url(#wm)" />
 </svg>`;
     const watermarkBuffer = Buffer.from(svgString);
-    console.timeEnd('[UPLOAD API] SVG Watermark Generate');
+    console.timeEnd('[UPLOAD API] SVG Composite Generate');
 
     // Composite the dynamically generated PNG watermark over the original image
     console.time('[UPLOAD API] Sharp Composite');
