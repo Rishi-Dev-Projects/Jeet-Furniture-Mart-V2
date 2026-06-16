@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
             style={{
               fontSize: titleSize,
               fontWeight: 900,
-              color: 'rgba(255, 255, 255, 0.15)',
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.15)',
+              color: 'rgba(255, 255, 255, 0.35)',
+              textShadow: '1px 1px 3px rgba(0, 0, 0, 0.4)',
             }}
           >
             JEET FURNITURE
@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
           <span
             style={{
               fontSize: subtitleSize,
-              color: 'rgba(255, 255, 255, 0.15)',
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.15)',
+              color: 'rgba(255, 255, 255, 0.35)',
+              textShadow: '1px 1px 3px rgba(0, 0, 0, 0.4)',
               marginTop: 5,
             }}
           >
